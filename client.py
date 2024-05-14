@@ -1,15 +1,13 @@
 import threading
 from tkinter import *
 from tkinter import simpledialog
-
 import grpc
-
 import chat_pb2 as chat__pb2
 import chat_pb2_grpc as rpc
+import redis
 
 address = 'localhost'
 port = 8080
-
 
 class Client:
     def __init__(self, u: str, window):
@@ -27,11 +25,12 @@ class Client:
         """
         for message in self.conn.ChatStream(chat__pb2.Empty()):
             print(f"Received from [{message.username}]: {message.message}")
+            # Store message in Redis cache
             self.chat_list.insert(END, f"[{message.username}] {message.message}\n")
 
     def send_message(self, event):
         message = self.entry_message.get()
-        if message is not '':
+        if message != '':
             n = chat__pb2.Message()
             n.username = self.username
             n.message = message
